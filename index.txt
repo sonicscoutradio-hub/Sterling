@@ -1,0 +1,1147 @@
+<!-- full index.html starts here -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <!-- ============ META & TITLE ============ -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sales Performance Dashboard</title>
+
+  <!-- ============ STYLES ============ -->
+  <style>
+
+    /* ===== ROOT VARIABLES ===== */
+    :root {
+      --bg:           #0d1117;
+      --bg2:          #161b22;
+      --bg3:          #1c2330;
+      --border:       #30363d;
+      --accent:       #00d4ff;
+      --accent2:      #00ff88;
+      --warn:         #f0b429;
+      --danger:       #ff5c5c;
+      --text:         #e6edf3;
+      --text-muted:   #8b949e;
+      --radius:       10px;
+      --shadow:       0 4px 24px rgba(0,0,0,0.4);
+    }
+
+    /* ===== BASE / RESET ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    input, select, textarea {
+      font-family: inherit;
+      font-size: 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 9px 12px;
+      width: 100%;
+      transition: border-color .2s;
+      outline: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(0,212,255,.1);
+    }
+    input[type="number"] { -moz-appearance: textfield; }
+    input[type="number"]::-webkit-inner-spin-button { display: none; }
+    label { display: block; font-size: 12px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: .06em;
+            color: var(--text-muted); margin-bottom: 5px; }
+    button {
+      cursor: pointer; border: none; border-radius: 8px;
+      font-family: inherit; font-weight: 600; transition: all .2s;
+    }
+
+    /* ===== LAYOUT ===== */
+    .page-wrap { max-width: 1200px; margin: 0 auto; padding: 0 20px 60px; }
+
+    /* ===== HEADER ============ */
+    header {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 20px;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 16px; flex-wrap: wrap;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--accent2);
+      box-shadow: 0 0 10px var(--accent2);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:.6; transform:scale(.8); }
+    }
+    .brand h1 {
+      font-size: clamp(16px,2vw,20px); font-weight: 700;
+      letter-spacing: -.02em; color: var(--text);
+    }
+    .brand span { color: var(--accent); }
+    #connection-status {
+      font-size: 12px; padding: 4px 12px; border-radius: 20px;
+      background: var(--bg3); border: 1px solid var(--border);
+      display: flex; align-items: center; gap: 6px;
+    }
+    #status-dot { width:7px; height:7px; border-radius:50%; background:var(--text-muted); }
+    #status-dot.ok  { background:var(--accent2); box-shadow:0 0 6px var(--accent2); }
+    #status-dot.err { background:var(--danger);  box-shadow:0 0 6px var(--danger); }
+
+    /* ===== KPI CARDS ===== */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px; margin: 28px 0 0;
+    }
+    .kpi-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px;
+      box-shadow: var(--shadow); position: relative; overflow: hidden;
+    }
+    .kpi-card::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+    .kpi-card .kpi-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--text-muted); margin-bottom: 8px;
+    }
+    .kpi-card .kpi-value {
+      font-size: clamp(22px,3vw,30px); font-weight: 800;
+      color: var(--text); letter-spacing: -.02em;
+    }
+    .kpi-card .kpi-value.green { color: var(--accent2); }
+    .kpi-card .kpi-value.blue  { color: var(--accent); }
+    .kpi-card .kpi-value.warn  { color: var(--warn); }
+    .kpi-card .kpi-sub {
+      font-size: 11px; color: var(--text-muted); margin-top: 4px;
+    }
+
+    /* ===== TAB NAV ===== */
+    .tab-nav {
+      display: flex; gap: 4px; margin: 28px 0 0;
+      border-bottom: 1px solid var(--border); flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: transparent; color: var(--text-muted);
+      padding: 10px 20px; border-radius: 8px 8px 0 0;
+      font-size: 14px; font-weight: 600; border: 1px solid transparent;
+      border-bottom: none; transition: all .2s; position: relative; bottom: -1px;
+    }
+    .tab-btn:hover { color: var(--text); background: var(--bg3); }
+    .tab-btn.active {
+      background: var(--bg2); color: var(--accent);
+      border-color: var(--border); border-bottom-color: var(--bg2);
+    }
+
+    /* ===== TAB PANELS ===== */
+    .tab-panel { display: none; animation: fadeIn .2s; }
+    .tab-panel.active { display: block; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+
+    /* ===== SECTION CARDS ===== */
+    .card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 28px;
+      box-shadow: var(--shadow); margin-top: 24px;
+    }
+    .card-title {
+      font-size: 15px; font-weight: 700; margin-bottom: 20px;
+      color: var(--text); display: flex; align-items: center; gap: 8px;
+    }
+    .card-title span { color: var(--accent); }
+
+    /* ===== FORM GRID ===== */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+    }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group.full { grid-column: 1 / -1; }
+
+    /* ===== DIVIDER ===== */
+    .section-divider {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; color: var(--accent); margin: 24px 0 16px;
+      padding-bottom: 8px; border-bottom: 1px solid var(--border);
+    }
+
+    /* ===== SUBMIT BUTTON ===== */
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #0099bb);
+      color: #fff; padding: 12px 32px; font-size: 15px;
+      border-radius: 8px; display: inline-flex; align-items: center;
+      gap: 8px; margin-top: 24px; font-weight: 700;
+      box-shadow: 0 4px 16px rgba(0,212,255,.25);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,212,255,.35); }
+    .btn-primary:active { transform: none; }
+    .btn-primary:disabled { opacity:.5; pointer-events:none; }
+    .btn-secondary {
+      background: var(--bg3); color: var(--text); padding: 9px 20px;
+      font-size: 13px; border: 1px solid var(--border); border-radius: 7px;
+    }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ===== TOAST ===== */
+    #toast {
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: var(--bg3); border: 1px solid var(--border);
+      color: var(--text); padding: 12px 24px; border-radius: 40px;
+      font-size: 14px; font-weight: 600; z-index: 9999;
+      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+      transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+      opacity: 0; pointer-events: none; white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); opacity:1; }
+    #toast.success { border-color: var(--accent2); color: var(--accent2); }
+    #toast.error   { border-color: var(--danger);  color: var(--danger); }
+
+    /* ===== TABLES ===== */
+    .table-wrap { overflow-x: auto; margin-top: 16px; border-radius: 8px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      background: var(--bg3); color: var(--text-muted);
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .07em; padding: 12px 14px; text-align: left;
+      white-space: nowrap;
+    }
+    tbody tr { border-top: 1px solid var(--border); }
+    tbody tr:hover { background: var(--bg3); }
+    tbody td { padding: 12px 14px; font-size: 13px; white-space: nowrap; }
+    .badge {
+      display: inline-block; padding: 3px 10px; border-radius: 12px;
+      font-size: 11px; font-weight: 700;
+    }
+    .badge.green { background: rgba(0,255,136,.12); color: var(--accent2); }
+    .badge.red   { background: rgba(255,92,92,.12);  color: var(--danger); }
+    .badge.yellow{ background: rgba(240,180,41,.12); color: var(--warn); }
+
+    /* ===== CALCULATED PREVIEW BOX ===== */
+    .calc-preview {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 8px; padding: 16px 20px; margin-top: 20px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+      gap: 16px;
+    }
+    .calc-item .ci-label {
+      font-size: 11px; color: var(--text-muted); font-weight: 600;
+      text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px;
+    }
+    .calc-item .ci-val {
+      font-size: 20px; font-weight: 800; color: var(--accent2);
+    }
+
+    /* ===== SETUP BANNER ===== */
+    .setup-banner {
+      background: rgba(240,180,41,.08); border: 1px solid rgba(240,180,41,.3);
+      border-radius: var(--radius); padding: 20px 24px; margin-top: 24px;
+      display: none;
+    }
+    .setup-banner.visible { display: block; }
+    .setup-banner h3 { color: var(--warn); font-size: 14px; margin-bottom: 8px; }
+    .setup-banner p  { font-size: 13px; color: var(--text-muted); line-height: 1.7; }
+    .setup-banner a  { color: var(--warn); font-weight: 600; }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+      text-align: center; padding: 48px 20px; color: var(--text-muted);
+    }
+    .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
+
+    /* ===== SPINNER ===== */
+    .spinner {
+      width: 20px; height: 20px; border: 2px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin .7s linear infinite; display: none; margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .page-wrap { padding: 0 14px 48px; }
+      .kpi-strip  { grid-template-columns: repeat(2, 1fr); }
+      .form-grid  { grid-template-columns: 1fr; }
+      .tab-btn    { padding: 8px 14px; font-size: 13px; }
+      .card       { padding: 18px; }
+    }
+    @media (max-width: 480px) {
+      .kpi-strip { grid-template-columns: 1fr 1fr; }
+      .kpi-card  { padding: 14px; }
+      .kpi-card .kpi-value { font-size: 20px; }
+      header     { padding: 12px 14px; }
+      .brand h1  { font-size: 15px; }
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- ============ HEADER ============ -->
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-dot"></div>
+        <!-- ✏️ EDIT: Change the title text here -->
+        <h1>Sales <span>Performance</span> Dashboard</h1>
+      </div>
+      <div id="connection-status">
+        <div id="status-dot"></div>
+        <span id="status-text">Not connected</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-wrap">
+
+    <!-- ============ SETUP BANNER (shown when no API URL is set) ============ -->
+    <div class="setup-banner visible" id="setup-banner">
+      <h3>⚠️ Google Sheets connection not configured</h3>
+      <p>
+        Enter your Google Apps Script Web App URL below to enable data saving.
+        See the <a href="#" onclick="switchTab('setup'); return false;">Setup Guide tab</a>
+        for step-by-step instructions.
+      </p>
+    </div>
+
+    <!-- ============ KPI STRIP ============ -->
+    <div class="kpi-strip">
+      <!-- KPI values are calculated live from localStorage data -->
+      <div class="kpi-card">
+        <div class="kpi-label">Annualized Revenue (This Month)</div>
+        <div class="kpi-value blue" id="kpi-revenue">—</div>
+        <div class="kpi-sub">One-time + ARR + (12×MRR)</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Proposal → Close %</div>
+        <div class="kpi-value green" id="kpi-close-rate">—</div>
+        <div class="kpi-sub">Target: 35–45%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Discovery → Proposal %</div>
+        <div class="kpi-value warn" id="kpi-disc-prop">—</div>
+        <div class="kpi-sub">Target: 50–65%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Open Proposals Value</div>
+        <div class="kpi-value" id="kpi-pipeline">—</div>
+        <div class="kpi-sub">Current pipeline</div>
+      </div>
+    </div>
+
+    <!-- ============ TAB NAV ============ -->
+    <nav class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('weekly')">📋 Log This Week</button>
+      <button class="tab-btn" onclick="switchTab('monthly')">📊 Monthly Summary</button>
+      <button class="tab-btn" onclick="switchTab('pipeline')">🔭 Pipeline Snapshot</button>
+      <button class="tab-btn" onclick="switchTab('setup')">⚙️ Setup Guide</button>
+    </nav>
+
+    <!-- ============================================================ -->
+    <!-- TAB 1 – WEEKLY LOG                                           -->
+    <!-- ============================================================ -->
+    <div class="tab-panel active" id="tab-weekly">
+
+      <div class="card">
+        <div class="card-title">📋 <span>Weekly Activity Log</span> &nbsp;— Enter last week's numbers</div>
+
+        <form id="weekly-form" novalidate>
+          <!-- ---- Section: Date & Rep ---- -->
+          <div class="section-divider">Who &amp; When</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="week-of">Week Of (Monday date) *</label>
+              <input type="date" id="week-of" required />
+            </div>
+            <div class="form-group">
+              <!-- ✏️ EDIT: Add more salespeople to this list as needed -->
+              <label for="sales-rep">Sales Representative *</label>
+              <select id="sales-rep" required>
+                <option value="">— Select —</option>
+                <option value="Valerie">Valerie</option>
+                <!-- Add more reps here -->
+              </select>
+            </div>
+          </div>
+
+          <!-- ---- Section: Activity Numbers ---- -->
+          <div class="section-divider">Activity Numbers</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="discovery-calls">Discovery Calls Held *</label>
+              <input type="number" id="discovery-calls" min="0" placeholder="0" required />
+            </div>
+            <div class="form-group">
+              <label for="proposal-calls">Proposal Calls Held *</label>
+              <input type="number" id="proposal-calls" min="0" placeholder="0" required />
+            </div>
+            <div class="form-group">
+              <label for="deals-closed">Deals Closed (signed + paid) *</label>
+              <input type="number" id="deals-closed" min="0" placeholder="0" required />
+            </div>
+            <div class="form-group">
+              <label for="deals-recurring">Closed Deals with Recurring (count)</label>
+              <input type="number" id="deals-recurring" min="0" placeholder="0" />
+            </div>
+          </div>
+
+          <!-- ---- Section: Revenue ---- -->
+          <div class="section-divider">Revenue Closed</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="one-time-fees">One-Time Fees Collected ($)</label>
+              <input type="number" id="one-time-fees" min="0" step="0.01" placeholder="0.00" />
+            </div>
+            <div class="form-group">
+              <label for="mrr-sold">Monthly Recurring Sold – MRR ($)</label>
+              <input type="number" id="mrr-sold" min="0" step="0.01" placeholder="0.00" />
+            </div>
+            <div class="form-group">
+              <label for="arr-sold">Annual Recurring Sold – ARR ($)</label>
+              <input type="number" id="arr-sold" min="0" step="0.01" placeholder="0.00" />
+            </div>
+          </div>
+
+          <!-- ---- Section: Pipeline ---- -->
+          <div class="section-divider">Pipeline Status (end of week)</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="open-proposals-count">Open Proposals Count</label>
+              <input type="number" id="open-proposals-count" min="0" placeholder="0" />
+            </div>
+            <div class="form-group">
+              <label for="open-proposals-value">Open Proposals Total Value ($)</label>
+              <input type="number" id="open-proposals-value" min="0" step="0.01" placeholder="0.00" />
+            </div>
+          </div>
+
+          <!-- ---- Live Calculated Preview ---- -->
+          <div class="calc-preview" id="calc-preview">
+            <div class="calc-item">
+              <div class="ci-label">Annualized Revenue</div>
+              <div class="ci-val" id="calc-annualized">$0</div>
+            </div>
+            <div class="calc-item">
+              <div class="ci-label">Proposal → Close %</div>
+              <div class="ci-val" id="calc-close-rate">—</div>
+            </div>
+            <div class="calc-item">
+              <div class="ci-label">Discovery → Proposal %</div>
+              <div class="ci-val" id="calc-disc-prop">—</div>
+            </div>
+            <div class="calc-item">
+              <div class="ci-label">Recurring Attach %</div>
+              <div class="ci-val" id="calc-recurring">—</div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary" id="submit-btn">
+            <span id="submit-spinner" class="spinner" style="display:inline-block;width:16px;height:16px;border-width:2px;"></span>
+            <span id="submit-text">Save to Google Sheets</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Recent Entries (from localStorage) -->
+      <div class="card">
+        <div class="card-title">📌 <span>Recent Entries</span> <small style="font-weight:400;color:var(--text-muted);font-size:12px;margin-left:8px;">Stored locally — also saved to Google Sheets when connected</small></div>
+        <div id="recent-entries-wrap">
+          <div class="empty-state">
+            <div class="icon">📭</div>
+            <p>No entries yet. Submit your first weekly log above.</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end tab-weekly -->
+
+
+    <!-- ============================================================ -->
+    <!-- TAB 2 – MONTHLY SUMMARY                                      -->
+    <!-- ============================================================ -->
+    <div class="tab-panel" id="tab-monthly">
+
+      <div class="card">
+        <div class="card-title">📊 <span>Monthly Summary</span> <small style="font-weight:400;color:var(--text-muted);font-size:12px;margin-left:8px;">Calculated from all weekly entries</small></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
+          <button class="btn-secondary" onclick="renderMonthly()">↻ Refresh</button>
+          <button class="btn-secondary" onclick="fetchFromSheets()">☁️ Sync from Google Sheets</button>
+          <span id="sync-status" style="font-size:12px;color:var(--text-muted);"></span>
+        </div>
+        <div class="spinner" id="monthly-spinner" style="width:28px;height:28px;margin:20px auto;"></div>
+        <div class="table-wrap" id="monthly-table-wrap">
+          <div class="empty-state">
+            <div class="icon">📊</div>
+            <p>No data yet. Submit weekly logs to see monthly summaries here.</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end tab-monthly -->
+
+
+    <!-- ============================================================ -->
+    <!-- TAB 3 – PIPELINE                                             -->
+    <!-- ============================================================ -->
+    <div class="tab-panel" id="tab-pipeline">
+
+      <div class="card">
+        <div class="card-title">🔭 <span>Pipeline Snapshot</span></div>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">
+          Pipeline data is captured automatically with each weekly entry. The table below summarises your open proposals over time.
+        </p>
+
+        <div class="table-wrap" id="pipeline-table-wrap">
+          <div class="empty-state">
+            <div class="icon">🔭</div>
+            <p>No pipeline data yet. Submit your first weekly log to start tracking.</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end tab-pipeline -->
+
+
+    <!-- ============================================================ -->
+    <!-- TAB 4 – SETUP GUIDE                                          -->
+    <!-- ============================================================ -->
+    <div class="tab-panel" id="tab-setup">
+
+      <div class="card">
+        <div class="card-title">⚙️ <span>Google Sheets Connection</span></div>
+
+        <!-- API URL field -->
+        <div class="form-group" style="max-width:600px;">
+          <label for="api-url">Apps Script Web App URL</label>
+          <input type="url" id="api-url"
+            placeholder="https://script.google.com/macros/s/YOUR_ID/exec"
+            style="font-size:13px;" />
+        </div>
+        <button class="btn-primary" onclick="saveApiUrl()" style="margin-top:12px;font-size:14px;padding:10px 24px;">
+          Save URL &amp; Test Connection
+        </button>
+        <div id="url-test-result" style="margin-top:12px;font-size:13px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📖 <span>Step-by-Step Setup Guide</span></div>
+        <div style="font-size:14px;line-height:1.9;color:var(--text-muted);max-width:760px;">
+
+          <p style="margin-bottom:16px;color:var(--text);">
+            This dashboard connects to Google Sheets using a free <strong>Google Apps Script Web App</strong>.
+            It takes about 5 minutes to set up and requires no paid services.
+          </p>
+
+          <h3 style="color:var(--accent);margin-bottom:8px;">Step 1 — Open your Google Sheet</h3>
+          <p>Open your sales tracking Google Sheet. It should have three tabs:
+            <strong>Weekly Dashboard</strong>, <strong>Monthly Summary</strong>,
+            and <strong>Pipeline Snapshot</strong>.
+            If you don't have one yet, create a new Google Sheet at
+            <a href="https://sheets.google.com" target="_blank">sheets.google.com</a>
+            and add those three tab names.</p>
+
+          <h3 style="color:var(--accent);margin:20px 0 8px;">Step 2 — Open Apps Script</h3>
+          <p>In your Google Sheet, click <strong>Extensions → Apps Script</strong>.
+            A new editor tab will open. Delete any existing code in the editor.</p>
+
+          <h3 style="color:var(--accent);margin:20px 0 8px;">Step 3 — Paste the connector script</h3>
+          <p>Copy the entire block of code below and paste it into the Apps Script editor, then click the <strong>Save</strong> (💾) button.</p>
+
+          <!-- ✏️ This is the Apps Script code the user pastes into Google Sheets -->
+          <pre id="apps-script-code" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:20px;font-size:12px;overflow-x:auto;margin:12px 0;line-height:1.6;color:#a5d6ff;white-space:pre-wrap;">
+// ================================================================
+// SALES DASHBOARD – Google Apps Script Connector
+// Paste this ENTIRE block into Extensions → Apps Script in your Sheet
+// Save, then Deploy as a Web App (see Step 4 below)
+// ================================================================
+
+// ✏️ This is hardcoded to your specific Google Sheet — do not change
+var SHEET_ID = '1rb9GnONEos0XYYodoRX9OzoQCIp9dxMg0fXcxERimig';
+
+// ---------- CORS Helper ----------
+function corsResponse(output) {
+  return output
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ---------- POST: Receive weekly entry from dashboard ----------
+function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    var ss   = SpreadsheetApp.openById(SHEET_ID);
+
+    if (data.type === 'weekly') {
+      var sheet = ss.getSheetByName('Weekly Dashboard');
+      if (!sheet) { sheet = ss.insertSheet('Weekly Dashboard'); }
+      // Add header row if sheet is empty
+      if (sheet.getLastRow() === 0) {
+        sheet.appendRow([
+          'Week Of','Sales Rep','Discovery Calls','Proposal Calls',
+          'Deals Closed','Deals w/ Recurring','One-Time Fees','MRR Sold',
+          'ARR Sold','Open Proposals Count','Open Proposals Value',
+          'Annualized Revenue','Proposal→Close %','Discovery→Proposal %','Submitted At'
+        ]);
+      }
+      sheet.appendRow([
+        data.weekOf, data.salesRep, data.discoveryCalls, data.proposalCalls,
+        data.dealsClosed, data.dealsRecurring, data.oneTimeFees, data.mrrSold,
+        data.arrSold, data.openProposalsCount, data.openProposalsValue,
+        data.annualizedRevenue, data.closeRate, data.discPropRate,
+        new Date().toISOString()
+      ]);
+    }
+
+    return corsResponse(ContentService.createTextOutput(
+      JSON.stringify({ status: 'success' })
+    ));
+
+  } catch(err) {
+    return corsResponse(ContentService.createTextOutput(
+      JSON.stringify({ status: 'error', message: err.toString() })
+    ));
+  }
+}
+
+// ---------- GET: Return data for dashboard display ----------
+function doGet(e) {
+  try {
+    var action = (e && e.parameter && e.parameter.action) ? e.parameter.action : 'ping';
+    var ss = SpreadsheetApp.openById(SHEET_ID);
+
+    if (action === 'ping') {
+      return corsResponse(ContentService.createTextOutput(
+        JSON.stringify({ status: 'ok', message: 'Connected!' })
+      ));
+    }
+
+    if (action === 'getWeekly') {
+      var sheet = ss.getSheetByName('Weekly Dashboard');
+      if (!sheet || sheet.getLastRow() < 2) {
+        return corsResponse(ContentService.createTextOutput(
+          JSON.stringify({ status: 'ok', rows: [] })
+        ));
+      }
+      var vals = sheet.getDataRange().getValues();
+      var headers = vals[0];
+      var rows = vals.slice(1).map(function(row) {
+        var obj = {};
+        headers.forEach(function(h, i) { obj[h] = row[i]; });
+        return obj;
+      });
+      return corsResponse(ContentService.createTextOutput(
+        JSON.stringify({ status: 'ok', rows: rows })
+      ));
+    }
+
+    return corsResponse(ContentService.createTextOutput(
+      JSON.stringify({ status: 'error', message: 'Unknown action' })
+    ));
+
+  } catch(err) {
+    return corsResponse(ContentService.createTextOutput(
+      JSON.stringify({ status: 'error', message: err.toString() })
+    ));
+  }
+}
+          </pre>
+          <button class="btn-secondary" onclick="copyScript()" style="margin-bottom:20px;">📋 Copy Script</button>
+
+          <h3 style="color:var(--accent);margin:20px 0 8px;">Step 4 — Deploy as a Web App</h3>
+          <ol style="padding-left:20px;line-height:2.2;">
+            <li>In Apps Script, click <strong>Deploy → New deployment</strong></li>
+            <li>Click the gear ⚙ icon next to <em>Select type</em> → choose <strong>Web app</strong></li>
+            <li>Set <em>Execute as:</em> → <strong>Me</strong></li>
+            <li>Set <em>Who has access:</em> → <strong>Anyone</strong></li>
+            <li>Click <strong>Deploy</strong> and authorise when prompted</li>
+            <li>Copy the <strong>Web app URL</strong> (starts with https://script.google.com/macros/s/…)</li>
+          </ol>
+
+          <h3 style="color:var(--accent);margin:20px 0 8px;">Step 5 — Paste the URL above</h3>
+          <p>Go to the <strong>Apps Script Web App URL</strong> field at the top of this Setup tab, paste your URL, and click <strong>Save URL &amp; Test Connection</strong>. A green "Connected!" message confirms everything is working.</p>
+
+          <div style="background:rgba(0,255,136,.07);border:1px solid rgba(0,255,136,.2);border-radius:8px;padding:16px 20px;margin-top:20px;">
+            <strong style="color:var(--accent2);">✅ You're done!</strong> Every time a salesperson submits the weekly form, the data is saved directly to your Google Sheet's <em>Weekly Dashboard</em> tab and the KPI cards on this page update automatically.
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end tab-setup -->
+
+  </div><!-- end page-wrap -->
+
+  <!-- ============ TOAST ============ -->
+  <div id="toast"></div>
+
+  <!-- ============================================================ -->
+  <!-- JAVASCRIPT                                                    -->
+  <!-- ============================================================ -->
+  <script>
+
+    // ===== CONFIGURATION =====
+    // ✏️ If you already know your Apps Script URL, paste it between the quotes below.
+    // Leave blank to enter it via the Setup Guide tab.
+    // ✏️ Your Apps Script Web App URL — hardcoded for reliability
+    var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzLhGXPtFpzMdXlLYLzDjQwbfmz2oDk2iJHSBSx9CLfFb6cLZOgw0MwLYGjFFGIRRnM/exec';
+    // Persist it so Setup tab shows it too
+    localStorage.setItem('ssrApiUrl', APPS_SCRIPT_URL);
+
+    var STORAGE_KEY_WEEKLY   = 'ssr_weekly_entries';
+    var STORAGE_KEY_PIPELINE = 'ssr_pipeline_entries';
+
+    // ===== HELPERS =====
+    function fmt$(n) {
+      var num = parseFloat(n) || 0;
+      return '$' + num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    }
+    function fmtPct(n) {
+      var num = parseFloat(n);
+      return isNaN(num) || !isFinite(num) ? '—' : (num * 100).toFixed(1) + '%';
+    }
+    function fmtDate(str) {
+      if (!str) return '—';
+      var d = new Date(str + 'T00:00:00');
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    function getWeeklyEntries() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY_WEEKLY)) || []; }
+      catch(e) { return []; }
+    }
+    function saveWeeklyEntry(entry) {
+      var arr = getWeeklyEntries();
+      arr.unshift(entry); // newest first
+      localStorage.setItem(STORAGE_KEY_WEEKLY, JSON.stringify(arr));
+    }
+
+    // ===== CONNECTION STATUS =====
+    function setStatus(state, text) {
+      var dot  = document.getElementById('status-dot');
+      var span = document.getElementById('status-text');
+      dot.className = state;
+      span.textContent = text;
+    }
+
+    // ===== INIT: Load API URL, default week-of date, update KPIs =====
+    window.addEventListener('DOMContentLoaded', function () {
+      if (APPS_SCRIPT_URL) {
+        document.getElementById('api-url').value = APPS_SCRIPT_URL;
+        document.getElementById('setup-banner').classList.remove('visible');
+        setStatus('ok', 'Google Sheets connected');
+      }
+
+      // Default week-of to most recent Monday
+      var today = new Date();
+      var day = today.getDay();
+      var diff = (day === 0) ? -6 : 1 - day;
+      today.setDate(today.getDate() + diff);
+      document.getElementById('week-of').value = today.toISOString().split('T')[0];
+
+      renderKPIs();
+      renderRecentEntries();
+      renderMonthly();
+      renderPipeline();
+
+      // Wire up live-calc listeners
+      ['one-time-fees','mrr-sold','arr-sold','proposal-calls','deals-closed','discovery-calls','deals-recurring']
+        .forEach(function(id) {
+          document.getElementById(id).addEventListener('input', updateCalcPreview);
+        });
+    });
+
+    // ===== TAB SWITCHING =====
+    function switchTab(name) {
+      document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+      document.getElementById('tab-' + name).classList.add('active');
+      // find matching button
+      document.querySelectorAll('.tab-btn').forEach(function(b) {
+        if (b.getAttribute('onclick').includes("'" + name + "'")) b.classList.add('active');
+      });
+    }
+
+    // ===== LIVE CALC PREVIEW =====
+    function updateCalcPreview() {
+      var otf  = parseFloat(document.getElementById('one-time-fees').value)  || 0;
+      var mrr  = parseFloat(document.getElementById('mrr-sold').value)        || 0;
+      var arr  = parseFloat(document.getElementById('arr-sold').value)        || 0;
+      var prop = parseFloat(document.getElementById('proposal-calls').value)  || 0;
+      var deal = parseFloat(document.getElementById('deals-closed').value)    || 0;
+      var disc = parseFloat(document.getElementById('discovery-calls').value) || 0;
+      var rec  = parseFloat(document.getElementById('deals-recurring').value) || 0;
+
+      var annualized    = otf + arr + (12 * mrr);
+      var closeRate     = prop > 0 ? deal / prop : NaN;
+      var discPropRate  = disc > 0 ? prop / disc : NaN;
+      var recurringPct  = deal > 0 ? rec  / deal : NaN;
+
+      document.getElementById('calc-annualized').textContent = fmt$(annualized);
+      document.getElementById('calc-close-rate').textContent = fmtPct(closeRate);
+      document.getElementById('calc-disc-prop').textContent  = fmtPct(discPropRate);
+      document.getElementById('calc-recurring').textContent  = fmtPct(recurringPct);
+    }
+
+    // ===== FORM SUBMIT =====
+    document.getElementById('weekly-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var weekOf  = document.getElementById('week-of').value;
+      var salesRep = document.getElementById('sales-rep').value;
+      if (!weekOf || !salesRep) { showToast('Please fill in all required fields.', 'error'); return; }
+
+      var discoveryCalls  = parseFloat(document.getElementById('discovery-calls').value)   || 0;
+      var proposalCalls   = parseFloat(document.getElementById('proposal-calls').value)    || 0;
+      var dealsClosed     = parseFloat(document.getElementById('deals-closed').value)      || 0;
+      var dealsRecurring  = parseFloat(document.getElementById('deals-recurring').value)   || 0;
+      var oneTimeFees     = parseFloat(document.getElementById('one-time-fees').value)     || 0;
+      var mrrSold         = parseFloat(document.getElementById('mrr-sold').value)          || 0;
+      var arrSold         = parseFloat(document.getElementById('arr-sold').value)          || 0;
+      var openProposalsCount = parseFloat(document.getElementById('open-proposals-count').value) || 0;
+      var openProposalsValue = parseFloat(document.getElementById('open-proposals-value').value) || 0;
+
+      var annualizedRevenue = oneTimeFees + arrSold + (12 * mrrSold);
+      var closeRate    = proposalCalls > 0 ? (dealsClosed / proposalCalls) : null;
+      var discPropRate = discoveryCalls > 0 ? (proposalCalls / discoveryCalls) : null;
+
+      var entry = {
+        weekOf: weekOf, salesRep: salesRep,
+        discoveryCalls: discoveryCalls, proposalCalls: proposalCalls,
+        dealsClosed: dealsClosed, dealsRecurring: dealsRecurring,
+        oneTimeFees: oneTimeFees, mrrSold: mrrSold, arrSold: arrSold,
+        openProposalsCount: openProposalsCount, openProposalsValue: openProposalsValue,
+        annualizedRevenue: annualizedRevenue,
+        closeRate: closeRate, discPropRate: discPropRate,
+        submittedAt: new Date().toISOString()
+      };
+
+      // Save locally first (always works offline)
+      saveWeeklyEntry(entry);
+      renderRecentEntries();
+      renderKPIs();
+      renderMonthly();
+      renderPipeline();
+
+      // Send to Google Sheets if URL is configured
+      if (APPS_SCRIPT_URL) {
+        setSubmitLoading(true);
+        sendToSheets(entry, function(ok) {
+          setSubmitLoading(false);
+          if (ok) {
+            showToast('✅ Saved to Google Sheets!', 'success');
+            resetForm();
+          } else {
+            showToast('⚠️ Saved locally. Google Sheets sync failed — check Setup tab.', 'error');
+            resetForm();
+          }
+        });
+      } else {
+        showToast('✅ Saved locally. Add your Google Sheets URL in Setup to also save to the sheet.', 'success');
+        resetForm();
+      }
+    });
+
+    function setSubmitLoading(on) {
+      document.getElementById('submit-btn').disabled = on;
+      document.getElementById('submit-spinner').style.display = on ? 'inline-block' : 'none';
+      document.getElementById('submit-text').textContent = on ? 'Saving…' : 'Save to Google Sheets';
+    }
+
+    function resetForm() {
+      // Reset numbers only, keep date and rep for quick re-entry
+      ['discovery-calls','proposal-calls','deals-closed','deals-recurring',
+       'one-time-fees','mrr-sold','arr-sold','open-proposals-count','open-proposals-value']
+       .forEach(function(id) { document.getElementById(id).value = ''; });
+      updateCalcPreview();
+    }
+
+    // ===== SEND TO GOOGLE SHEETS (POST) =====
+    function sendToSheets(payload, callback) {
+      payload.type = 'weekly';
+      fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors', // Google Apps Script requires no-cors
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(function() {
+        // With no-cors we can't read the response, so assume success if no error
+        callback(true);
+      })
+      .catch(function() {
+        callback(false);
+      });
+    }
+
+    // ===== FETCH FROM SHEETS (GET) =====
+    function fetchFromSheets() {
+      if (!APPS_SCRIPT_URL) { showToast('No Google Sheets URL configured.', 'error'); return; }
+      var syncEl = document.getElementById('sync-status');
+      syncEl.textContent = '↻ Syncing…';
+      document.getElementById('monthly-spinner').style.display = 'block';
+
+      fetch(APPS_SCRIPT_URL + '?action=getWeekly')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        document.getElementById('monthly-spinner').style.display = 'none';
+        if (data.status === 'ok' && data.rows && data.rows.length) {
+          // Merge sheet data into localStorage
+          var mapped = data.rows.map(function(r) {
+            return {
+              weekOf: r['Week Of'] ? new Date(r['Week Of']).toISOString().split('T')[0] : '',
+              salesRep: r['Sales Rep'] || '',
+              discoveryCalls: +r['Discovery Calls'] || 0,
+              proposalCalls: +r['Proposal Calls'] || 0,
+              dealsClosed: +r['Deals Closed'] || 0,
+              dealsRecurring: +r['Deals w/ Recurring'] || 0,
+              oneTimeFees: +r['One-Time Fees'] || 0,
+              mrrSold: +r['MRR Sold'] || 0,
+              arrSold: +r['ARR Sold'] || 0,
+              openProposalsCount: +r['Open Proposals Count'] || 0,
+              openProposalsValue: +r['Open Proposals Value'] || 0,
+              annualizedRevenue: +r['Annualized Revenue'] || 0,
+              closeRate: +r['Proposal→Close %'] || null,
+              discPropRate: +r['Discovery→Proposal %'] || null,
+              submittedAt: r['Submitted At'] || new Date().toISOString()
+            };
+          });
+          // Deduplicate by weekOf + salesRep, sheet data wins
+          var existing = getWeeklyEntries();
+          var keys = {};
+          mapped.forEach(function(e) { keys[e.weekOf + '|' + e.salesRep] = true; });
+          var kept = existing.filter(function(e) { return !keys[e.weekOf + '|' + e.salesRep]; });
+          var merged = mapped.concat(kept).sort(function(a,b) { return b.weekOf.localeCompare(a.weekOf); });
+          localStorage.setItem(STORAGE_KEY_WEEKLY, JSON.stringify(merged));
+          renderRecentEntries(); renderKPIs(); renderMonthly(); renderPipeline();
+          syncEl.textContent = '✅ Synced ' + mapped.length + ' row(s)';
+        } else {
+          syncEl.textContent = '⚠️ No rows returned from sheet';
+        }
+      })
+      .catch(function() {
+        document.getElementById('monthly-spinner').style.display = 'none';
+        syncEl.textContent = '❌ Sync failed — check URL in Setup tab';
+      });
+    }
+
+    // ===== KPI CARDS =====
+    function renderKPIs() {
+      var entries = getWeeklyEntries();
+      if (!entries.length) return;
+
+      // Use current month entries
+      var now = new Date();
+      var thisMonth = entries.filter(function(e) {
+        var d = new Date(e.weekOf + 'T00:00:00');
+        return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+      });
+
+      var totRevenue = thisMonth.reduce(function(s, e) { return s + (e.annualizedRevenue || 0); }, 0);
+      var totProp    = thisMonth.reduce(function(s, e) { return s + (e.proposalCalls || 0); }, 0);
+      var totDeal    = thisMonth.reduce(function(s, e) { return s + (e.dealsClosed || 0); }, 0);
+      var totDisc    = thisMonth.reduce(function(s, e) { return s + (e.discoveryCalls || 0); }, 0);
+      var lastEntry  = entries[0];
+
+      document.getElementById('kpi-revenue').textContent  = fmt$(totRevenue);
+      document.getElementById('kpi-close-rate').textContent = fmtPct(totProp > 0 ? totDeal / totProp : NaN);
+      document.getElementById('kpi-disc-prop').textContent  = fmtPct(totDisc > 0 ? totProp / totDisc : NaN);
+      document.getElementById('kpi-pipeline').textContent   = fmt$(lastEntry ? lastEntry.openProposalsValue : 0);
+    }
+
+    // ===== RECENT ENTRIES TABLE =====
+    function renderRecentEntries() {
+      var entries = getWeeklyEntries().slice(0, 10);
+      var wrap = document.getElementById('recent-entries-wrap');
+      if (!entries.length) {
+        wrap.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No entries yet.</p></div>';
+        return;
+      }
+      var html = '<div class="table-wrap"><table><thead><tr>'
+        + '<th>Week Of</th><th>Rep</th><th>Discovery</th><th>Proposals</th>'
+        + '<th>Closed</th><th>Annualized Rev</th><th>Close %</th><th>Open Pipeline</th>'
+        + '</tr></thead><tbody>';
+      entries.forEach(function(e) {
+        var crClass = (e.closeRate !== null && e.closeRate >= .35) ? 'green' : (e.closeRate !== null && e.closeRate < .30) ? 'red' : 'yellow';
+        html += '<tr>'
+          + '<td>' + fmtDate(e.weekOf) + '</td>'
+          + '<td>' + (e.salesRep || '—') + '</td>'
+          + '<td>' + (e.discoveryCalls || 0) + '</td>'
+          + '<td>' + (e.proposalCalls || 0) + '</td>'
+          + '<td>' + (e.dealsClosed || 0) + '</td>'
+          + '<td style="color:var(--accent2);font-weight:700;">' + fmt$(e.annualizedRevenue) + '</td>'
+          + '<td><span class="badge ' + crClass + '">' + fmtPct(e.closeRate) + '</span></td>'
+          + '<td>' + fmt$(e.openProposalsValue) + '</td>'
+          + '</tr>';
+      });
+      html += '</tbody></table></div>';
+      wrap.innerHTML = html;
+    }
+
+    // ===== MONTHLY SUMMARY TABLE =====
+    function renderMonthly() {
+      var entries = getWeeklyEntries();
+      var wrap = document.getElementById('monthly-table-wrap');
+      if (!entries.length) {
+        wrap.innerHTML = '<div class="empty-state"><div class="icon">📊</div><p>No data yet.</p></div>';
+        return;
+      }
+
+      // Group by YYYY-MM
+      var months = {};
+      entries.forEach(function(e) {
+        var key = e.weekOf ? e.weekOf.substring(0, 7) : '????-??';
+        if (!months[key]) months[key] = [];
+        months[key].push(e);
+      });
+
+      var keys = Object.keys(months).sort().reverse();
+      var html = '<table><thead><tr>'
+        + '<th>Month</th><th>Discovery Calls</th><th>Proposal Calls</th>'
+        + '<th>Deals Closed</th><th>One-Time Fees</th>'
+        + '<th>MRR Sold</th><th>ARR Sold</th>'
+        + '<th>Annualized Rev</th><th>Avg Deal Size</th>'
+        + '<th>Prop→Close %</th><th>Disc→Prop %</th><th>Recurring Attach %</th>'
+        + '</tr></thead><tbody>';
+
+      keys.forEach(function(key) {
+        var rows = months[key];
+        var disc  = rows.reduce(function(s,r) { return s + (r.discoveryCalls || 0);   }, 0);
+        var prop  = rows.reduce(function(s,r) { return s + (r.proposalCalls || 0);    }, 0);
+        var deal  = rows.reduce(function(s,r) { return s + (r.dealsClosed || 0);      }, 0);
+        var rec   = rows.reduce(function(s,r) { return s + (r.dealsRecurring || 0);   }, 0);
+        var otf   = rows.reduce(function(s,r) { return s + (r.oneTimeFees || 0);      }, 0);
+        var mrr   = rows.reduce(function(s,r) { return s + (r.mrrSold || 0);          }, 0);
+        var arr   = rows.reduce(function(s,r) { return s + (r.arrSold || 0);          }, 0);
+        var ann   = otf + arr + (12 * mrr);
+        var avgDeal = deal > 0 ? ann / deal : 0;
+        var closeRate    = prop > 0 ? deal / prop : NaN;
+        var discPropRate = disc > 0 ? prop / disc : NaN;
+        var recurringPct = deal > 0 ? rec  / deal : NaN;
+
+        var crClass = (!isNaN(closeRate) && closeRate >= .35) ? 'green' : (!isNaN(closeRate) && closeRate < .30) ? 'red' : 'yellow';
+        var dpClass = (!isNaN(discPropRate) && discPropRate >= .50) ? 'green' : 'yellow';
+
+        var d = new Date(key + '-01T00:00:00');
+        var label = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+        html += '<tr>'
+          + '<td style="font-weight:700;">' + label + '</td>'
+          + '<td>' + disc + '</td>'
+          + '<td>' + prop + '</td>'
+          + '<td>' + deal + '</td>'
+          + '<td>' + fmt$(otf) + '</td>'
+          + '<td>' + fmt$(mrr) + '/mo</td>'
+          + '<td>' + fmt$(arr) + '/yr</td>'
+          + '<td style="color:var(--accent2);font-weight:700;">' + fmt$(ann) + '</td>'
+          + '<td>' + fmt$(avgDeal) + '</td>'
+          + '<td><span class="badge ' + crClass + '">' + fmtPct(closeRate) + '</span></td>'
+          + '<td><span class="badge ' + dpClass + '">' + fmtPct(discPropRate) + '</span></td>'
+          + '<td>' + fmtPct(recurringPct) + '</td>'
+          + '</tr>';
+      });
+      html += '</tbody></table>';
+      wrap.innerHTML = html;
+    }
+
+    // ===== PIPELINE TABLE =====
+    function renderPipeline() {
+      var entries = getWeeklyEntries().slice(0, 12);
+      var wrap = document.getElementById('pipeline-table-wrap');
+      if (!entries.length) {
+        wrap.innerHTML = '<div class="empty-state"><div class="icon">🔭</div><p>No pipeline data yet.</p></div>';
+        return;
+      }
+      var html = '<table><thead><tr>'
+        + '<th>Week Of</th><th>Rep</th><th>Open Proposals</th>'
+        + '<th>Open Value</th><th>Deals Closed</th><th>Status</th>'
+        + '</tr></thead><tbody>';
+      entries.forEach(function(e) {
+        var health = 'green';
+        if (!e.openProposalsCount || e.openProposalsCount < 3) health = 'yellow';
+        if (!e.openProposalsCount || e.openProposalsCount < 1) health = 'red';
+        var healthLabel = health === 'green' ? 'Healthy' : health === 'yellow' ? 'Watch' : 'Thin';
+        html += '<tr>'
+          + '<td>' + fmtDate(e.weekOf) + '</td>'
+          + '<td>' + (e.salesRep || '—') + '</td>'
+          + '<td style="font-weight:700;">' + (e.openProposalsCount || 0) + '</td>'
+          + '<td style="color:var(--accent);font-weight:700;">' + fmt$(e.openProposalsValue) + '</td>'
+          + '<td>' + (e.dealsClosed || 0) + '</td>'
+          + '<td><span class="badge ' + health + '">' + healthLabel + '</span></td>'
+          + '</tr>';
+      });
+      html += '</tbody></table>';
+      wrap.innerHTML = html;
+    }
+
+    // ===== SAVE API URL =====
+    // NOTE: Google Apps Script blocks browser ping tests (CORS) but form POSTs
+    // work fine via no-cors mode. We save the URL and do a no-cors smoke test.
+    function saveApiUrl() {
+      var url = document.getElementById('api-url').value.trim();
+      if (!url) { showToast('Please enter a URL.', 'error'); return; }
+      APPS_SCRIPT_URL = url;
+      localStorage.setItem('ssrApiUrl', url);
+      document.getElementById('setup-banner').classList.remove('visible');
+      setStatus('ok', 'Google Sheets connected');
+      var resultEl = document.getElementById('url-test-result');
+      resultEl.style.color = 'var(--text-muted)';
+      resultEl.textContent = '↻ Sending test ping…';
+
+      // Use no-cors — we can't read the response body, but a network error
+      // means the URL is wrong; a resolved promise means the script is reachable.
+      fetch(url + '?action=ping', { mode: 'no-cors' })
+        .then(function() {
+          resultEl.style.color = 'var(--accent2)';
+          resultEl.textContent = '✅ URL is reachable — Google Sheets is connected! Submit a test entry to confirm data is arriving in your sheet.';
+          setStatus('ok', 'Google Sheets connected');
+        })
+        .catch(function() {
+          resultEl.style.color = 'var(--danger)';
+          resultEl.textContent = '❌ Could not reach that URL. Double-check the deployment URL and make sure access is set to "Anyone".';
+          setStatus('err', 'Unreachable');
+        });
+    }
+
+    // ===== COPY SCRIPT =====
+    function copyScript() {
+      var code = document.getElementById('apps-script-code').textContent;
+      navigator.clipboard.writeText(code).then(function() {
+        showToast('✅ Script copied to clipboard!', 'success');
+      }).catch(function() {
+        showToast('Select the code above and copy manually.', 'error');
+      });
+    }
+
+    // ===== TOAST =====
+    var toastTimer;
+    function showToast(msg, type) {
+      var el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'show ' + (type || '');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function() { el.className = ''; }, 4000);
+    }
+
+  </script>
+
+</body>
+</html>
+<!-- full index.html ends here -->
